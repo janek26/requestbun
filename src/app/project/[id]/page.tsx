@@ -2,13 +2,13 @@ import { notFound } from "next/navigation";
 import { ProjectDetail } from "@/app/components/features/project/detail";
 
 interface ProjectPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
-export default function ProjectPage({ params }: ProjectPageProps) {
-  const { id } = params;
+export default async function ProjectPage({ params }: ProjectPageProps) {
+  const { id } = await params;
 
   // UUID validation
   const isValidUUID =
