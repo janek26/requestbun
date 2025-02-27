@@ -15,7 +15,7 @@ export default async function Home() {
             "from-white to-gray-50"
           )}
         >
-          <span>RequestBin</span>
+          <span>RequestBun</span>
         </h1>
 
         <p className="text-[#ececf399] text-lg/7 md:text-xl/8 text-pretty sm:text-wrap sm:text-center text-center mb-8">
