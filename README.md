@@ -1,4 +1,4 @@
-## JStack RequestBin
+## RequestBun
 
 A lightweight, self-hosted alternative to RequestBin built with modern tech:
 
