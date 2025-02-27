@@ -8,6 +8,13 @@
       "when": 1740663595189,
       "tag": "0000_high_deathstrike",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1740667409432,
+      "tag": "0001_slow_ezekiel_stane",
+      "breakpoints": true
     }
   ]
 }

@@ -1,4 +1,4 @@
-import { projects } from "@/server/db/schema";
+import { projects, requests } from "@/server/db/schema";
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { j, publicProcedure } from "../jstack";
@@ -75,6 +75,10 @@ export const projectRouter = j.router({
       const { id } = input;
       const { db } = ctx;
 
+      // First delete all associated requests
+      await db.delete(requests).where(eq(requests.projectId, id));
+
+      // Then delete the project
       const [deletedProject] = await db
         .delete(projects)
         .where(eq(projects.id, id))
