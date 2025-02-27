@@ -34,7 +34,7 @@ export const RequestList = ({
 
   if (isPending) {
     return (
-      <div className="w-80 h-full border-r border-zinc-800 bg-black/20">
+      <div className="w-full h-full border-r border-zinc-800 bg-black/20">
         <div className="p-4">
           <p className="text-zinc-400">Loading requests...</p>
         </div>
@@ -44,7 +44,7 @@ export const RequestList = ({
 
   if (!data?.requests.length) {
     return (
-      <div className="w-80 h-full border-r border-zinc-800 bg-black/20">
+      <div className="w-full h-full border-r border-zinc-800 bg-black/20">
         <div className="p-4">
           <p className="text-zinc-400">No requests found</p>
         </div>
@@ -53,7 +53,7 @@ export const RequestList = ({
   }
 
   return (
-    <div className="w-80 h-full border-r border-zinc-800 bg-black/20">
+    <div className="w-full h-full border-r border-zinc-800 bg-black/20">
       <ScrollArea className="h-full">
         <div className="p-2">
           {data.requests.map((request) => (

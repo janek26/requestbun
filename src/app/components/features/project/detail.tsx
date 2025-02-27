@@ -10,6 +10,11 @@ import { toast } from "sonner";
 import { RequestList } from "../request/list";
 import { RequestDetail } from "../request/detail";
 import { Request } from "@/app/types/request";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/app/components/ui/resizable";
 
 type Project = {
   id: string;
@@ -159,14 +164,22 @@ export const ProjectDetail = ({ id }: ProjectDetailProps) => {
         </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
-        <RequestList
-          projectId={id}
-          selectedRequestId={selectedRequest?.id}
-          onRequestSelect={setSelectedRequest}
-        />
-        <RequestDetail request={selectedRequest} />
-      </div>
+      <ResizablePanelGroup
+        direction="horizontal"
+        className="flex-1 overflow-hidden"
+      >
+        <ResizablePanel defaultSize={20} minSize={10}>
+          <RequestList
+            projectId={id}
+            selectedRequestId={selectedRequest?.id}
+            onRequestSelect={setSelectedRequest}
+          />
+        </ResizablePanel>
+        <ResizableHandle className="w-1 bg-zinc-800" />
+        <ResizablePanel>
+          <RequestDetail request={selectedRequest} />
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </div>
   );
 };
