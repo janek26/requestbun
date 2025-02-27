@@ -26,7 +26,7 @@ export const RequestDetail = ({ request }: RequestDetailProps) => {
   };
 
   return (
-    <div className="flex-1 h-full">
+    <div className="flex-1 h-full overflow-y-auto">
       <div className="p-8 space-y-8">
         {/* Request Overview */}
         <div>
