@@ -2,7 +2,6 @@
 
 import { Request } from "@/app/types/request";
 import { format } from "date-fns";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
 import { cn } from "@/app/lib/utils";
 
 interface RequestDetailProps {
@@ -27,7 +26,7 @@ export const RequestDetail = ({ request }: RequestDetailProps) => {
   };
 
   return (
-    <ScrollArea className="flex-1 h-full">
+    <div className="flex-1 h-full">
       <div className="p-8 space-y-8">
         {/* Request Overview */}
         <div>
@@ -105,6 +104,6 @@ export const RequestDetail = ({ request }: RequestDetailProps) => {
           </div>
         )}
       </div>
-    </ScrollArea>
+    </div>
   );
 };
