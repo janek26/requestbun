@@ -7,6 +7,7 @@ export interface Request {
   body: any;
   ip: string | null;
   timestamp: Date;
+  forwarded: boolean;
 }
 
 export interface RequestsResponse {

@@ -1,7 +1,9 @@
 import { neon } from "@neondatabase/serverless";
 import { HonoRequest } from "hono";
 import { drizzle } from "drizzle-orm/neon-http";
-import { requests } from "../db/schema";
+import { requests, projects } from "../db/schema";
+import { eq } from "drizzle-orm";
+import { forwardRequest } from "./forward";
 
 const sql = neon(process.env.DATABASE_URL!);
 const db = drizzle(sql);
@@ -43,9 +45,29 @@ export async function logRequest(
   const query = req.query();
   const headers = req.header();
   const ip = req.header("x-forwarded-for") || req.header("x-real-ip");
-
   const body = await parseBody(req, method);
 
+  // Check if project has rewrite URL configured
+  const [project] = await db
+    .select()
+    .from(projects)
+    .where(eq(projects.id, projectId))
+    .limit(1);
+
+  let forwarded = false;
+  if (project?.rewriteUrl) {
+    forwarded = await forwardRequest(
+      projectId,
+      method,
+      query,
+      headers,
+      body,
+      project.rewriteUrl,
+      ip
+    );
+  }
+
+  // Log the request
   await db.insert(requests).values({
     projectId,
     method,
@@ -53,5 +75,6 @@ export async function logRequest(
     headers,
     body,
     ip,
+    forwarded,
   });
 }

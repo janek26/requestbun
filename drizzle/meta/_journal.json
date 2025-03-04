@@ -15,6 +15,13 @@
       "when": 1740667409432,
       "tag": "0001_slow_ezekiel_stane",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1741080713585,
+      "tag": "0002_illegal_sersi",
+      "breakpoints": true
     }
   ]
 }

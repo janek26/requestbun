@@ -1,7 +1,8 @@
 import { requests } from "@/server/db/schema";
-import { desc, eq, and, gte, lte, sql } from "drizzle-orm";
+import { desc, eq, and, sql } from "drizzle-orm";
 import { z } from "zod";
 import { j, publicProcedure } from "../jstack";
+import { Request } from "@/app/types/request";
 
 export const requestRouter = j.router({
   // Get requests for a project with optional date range filtering
@@ -9,43 +10,48 @@ export const requestRouter = j.router({
     .input(
       z.object({
         projectId: z.string().uuid(),
-        startDate: z.string().datetime().optional(),
-        endDate: z.string().datetime().optional(),
+        cursor: z.string().uuid().optional(),
+        fromCursor: z.boolean().optional().default(false),
         limit: z.number().min(1).max(100).default(50),
-        offset: z.number().min(0).default(0),
       })
     )
     .query(async ({ c, ctx, input }) => {
-      const { projectId, startDate, endDate, limit, offset } = input;
+      const { projectId, cursor, fromCursor, limit } = input;
       const { db } = ctx;
 
       const conditions = [eq(requests.projectId, projectId)];
 
-      if (startDate) {
-        conditions.push(gte(requests.timestamp, new Date(startDate)));
-      }
-      if (endDate) {
-        conditions.push(lte(requests.timestamp, new Date(endDate)));
+      if (cursor) {
+        if (fromCursor) {
+          conditions.push(
+            sql`${requests.timestamp} > (SELECT timestamp FROM ${requests} WHERE id = ${cursor})`
+          );
+        } else {
+          conditions.push(
+            sql`${requests.timestamp} < (SELECT timestamp FROM ${requests} WHERE id = ${cursor})`
+          );
+        }
       }
 
       const requestLogs = await db
         .select()
         .from(requests)
         .where(and(...conditions))
-        .orderBy(desc(requests.timestamp))
-        .limit(limit)
-        .offset(offset);
+        .orderBy(desc(requests.timestamp)) // Ensure ordering by a comparable field
+        .limit(limit + 1)
+        .then((res) => {
+          return res as Request[];
+        });
 
-      const countResult = await db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(requests)
-        .where(and(...conditions));
-
-      const total = countResult[0]?.count ?? 0;
+      const hasNextPage = requestLogs.length > limit;
+      const items = hasNextPage ? requestLogs.slice(0, -1) : requestLogs;
+      const nextCursor = items[items.length - 1]?.id ?? cursor;
+      const previousCursor = items[0]?.id ?? cursor;
 
       return c.superjson({
-        requests: requestLogs,
-        total,
+        items,
+        nextCursor,
+        previousCursor,
       });
     }),
 

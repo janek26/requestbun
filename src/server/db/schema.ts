@@ -5,6 +5,7 @@ import {
   index,
   uuid,
   jsonb,
+  boolean,
 } from "drizzle-orm/pg-core";
 
 export const projects = pgTable(
@@ -12,6 +13,7 @@ export const projects = pgTable(
   {
     id: uuid("id").defaultRandom().primaryKey(),
     name: text("name").notNull(),
+    rewriteUrl: text("rewriteUrl"),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().notNull(),
   },
@@ -31,6 +33,7 @@ export const requests = pgTable(
     body: jsonb("body"),
     ip: text("ip"),
     timestamp: timestamp("timestamp").defaultNow().notNull(),
+    forwarded: boolean("forwarded").default(false).notNull(),
   },
   (table) => [
     index("requests_projectId_idx").on(table.projectId),
