@@ -6,7 +6,10 @@ export async function forwardRequest(
   body: any,
   rewriteUrl: string,
   ip: string | undefined
-) {
+): Promise<boolean> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 1000);
+
   try {
     const url = new URL(rewriteUrl);
     // Add query parameters
@@ -23,11 +26,14 @@ export async function forwardRequest(
         ...(projectId && { "x-project-id": projectId }),
       },
       body: body ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
     });
 
     return response.ok;
   } catch (error) {
     console.error("Error forwarding request:", error);
     return false;
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
