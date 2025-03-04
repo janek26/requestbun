@@ -33,19 +33,17 @@ export const requestRouter = j.router({
         }
       }
 
-      const requestLogs = await db
+      const items = await db
         .select()
         .from(requests)
         .where(and(...conditions))
         .orderBy(desc(requests.timestamp)) // Ensure ordering by a comparable field
-        .limit(limit + 1)
+        .limit(limit)
         .then((res) => {
           return res as Request[];
         });
 
-      const hasNextPage = requestLogs.length > limit;
-      const items = hasNextPage ? requestLogs.slice(0, -1) : requestLogs;
-      const nextCursor = items[items.length - 1]?.id ?? cursor;
+      const nextCursor = items[items.length - 1]?.id;
       const previousCursor = items[0]?.id ?? cursor;
 
       return c.superjson({

@@ -1,6 +1,10 @@
 "use client";
 
-import { useInfiniteQuery } from "@tanstack/react-query";
+import {
+  InfiniteData,
+  useInfiniteQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { client } from "@/lib/client";
 import { cn } from "@/app/lib/utils";
 import { Request } from "@/app/types/request";
@@ -22,6 +26,18 @@ interface RequestListProps {
   onRequestSelect: (request: Request) => void;
 }
 
+const fetchRequestsPageByProject =
+  (projectId: string, fromCursor: boolean) =>
+  async ({ pageParam }: { pageParam?: string }) => {
+    const res = await client.requests.getByProject.$get({
+      projectId,
+      limit: PAGE_SIZE,
+      cursor: pageParam,
+      fromCursor,
+    });
+    return await res.json();
+  };
+
 export const RequestList = ({
   projectId,
   selectedRequestId,
@@ -29,48 +45,60 @@ export const RequestList = ({
 }: RequestListProps) => {
   const parentRef = useRef<HTMLDivElement>(null);
 
+  const queryClient = useQueryClient();
   const {
-    data,
+    data: { items: allRequests = [], previousCursor } = {},
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
     isPending,
-    fetchPreviousPage,
   } = useInfiniteQuery({
     queryKey: ["requests", projectId],
-    queryFn: async ({
-      pageParam,
-    }: {
-      pageParam?: { cursor?: string; fromCursor?: boolean };
-    }) => {
-      const res = await client.requests.getByProject.$get({
-        projectId,
-        limit: PAGE_SIZE,
-        cursor: pageParam?.cursor ?? undefined,
-        fromCursor: pageParam?.fromCursor ?? false,
-      });
-      return await res.json();
-    },
-    getNextPageParam: (lastPage) => ({
-      cursor: lastPage.nextCursor,
-      fromCursor: false,
-    }),
+    queryFn: fetchRequestsPageByProject(projectId, false),
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: undefined,
-    getPreviousPageParam: (firstPage) => ({
-      cursor: firstPage.previousCursor,
-      fromCursor: true,
-    }),
+    select: (data) => {
+      return {
+        items: data.pages.flatMap((page) => page.items),
+        previousCursor: data.pages[0]?.previousCursor,
+      };
+    },
   });
 
   // Poll for new requests by checking if there are any requests with IDs greater than our most recent one
   useEffect(() => {
     const interval = setInterval(() => {
-      fetchPreviousPage();
+      if (previousCursor) {
+        fetchRequestsPageByProject(
+          projectId,
+          true
+        )({
+          pageParam: previousCursor,
+        }).then((res) => {
+          queryClient.setQueryData(
+            ["requests", projectId],
+            (
+              data: InfiniteData<
+                {
+                  items: Request[];
+                  nextCursor: string | undefined;
+                  previousCursor: string | undefined;
+                },
+                string | undefined
+              >
+            ) =>
+              res.items.length
+                ? {
+                    pages: [res, ...data.pages],
+                    pageParams: [res.previousCursor, ...data.pageParams],
+                  }
+                : data
+          );
+        });
+      }
     }, 5000);
     return () => clearInterval(interval);
-  }, [fetchPreviousPage]);
-
-  const allRequests = data?.pages.flatMap((page) => page.items) ?? [];
+  }, [previousCursor]);
 
   const rowVirtualizer = useVirtualizer({
     count: hasNextPage ? allRequests.length + 1 : allRequests.length,
